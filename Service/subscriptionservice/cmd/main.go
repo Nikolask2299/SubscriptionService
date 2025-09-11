@@ -1,23 +1,17 @@
 package main
 
 import (
-
-	"client"
-	"client/server"
-	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
 
-	"musicservice/cmd/migration"
-	"musicservice/interal/app"
-	"musicservice/interal/server"
-	"musicservice/pkg/config"
-	"musicservice/pkg/sql/postgres"
+	"subscriptionservice/interal/app"
+	"subscriptionservice/interal/server"
+	"subscriptionservice/pkg/config"
+	"subscriptionservice/pkg/sql/postgres"
 
-    _"github.com/swaggo/http-swagger"
+	_ "github.com/swaggo/http-swagger"
 )
 
 const (
@@ -26,44 +20,7 @@ const (
     envProd  = "prod"
 )
 
-type Server struct{}
 
-func NewServer() Server {
- return Server{}
-}
-
-
-func (Server) GetInfo(w http.ResponseWriter, r *http.Request, param api.GetInfoParams) {
-    w.Header().Set("Content-type", "application/json")
-    
-    data := &api.SongDetail{
-        Link: "https://www.youtube.com/watch?v=Xsp3_a-PMTw",
-        ReleaseDate: "16.07.2006",
-        Text: "Ooh baby, don't you know I suffer?\nOoh baby, can you hear me moan?\nYou caught me under false pretenses\nHow long before you let me go?\n\nOoh\nYou set my soul alight\nOoh\nYou set my soul alight",
-    }
-    
-    json.NewEncoder(w).Encode(data)
-}
-
-func initializing() {
-    migration.Migrations()
-    
-    app := NewServer()
-
-    log.Println("Initializing server...")
-    e := http.NewServeMux()
-    h := api.HandlerFromMux(app, e)
-    
-    s := &http.Server{
-        Addr:    "0.0.0.0:8070",
-        Handler: h,
-    }
-    
-    if err := s.ListenAndServe(); err != nil {
-        log.Fatal(err)
-    }
-
-}
 // @title           Swagger Example API
 // @version         2.0
 // @description     This is a sample server celler server.
@@ -71,8 +28,7 @@ func initializing() {
 // @host      localhost:8080
 // @BasePath  /
 func main() {
-    go initializing()
-
+  
 	loger := setupLogger("local")
 	loger = loger.With(slog.String("env", "local"))
 
@@ -92,35 +48,28 @@ func main() {
     }
 
     loger.Info("initializing server config")
-    confServer, confAPI, err := config.RetuneServerConfig()
+    confServer, err := config.RetuneServerConfig()
     if err!= nil {
         loger.Error("error initializing config", slog.String("error", err.Error()))
         panic(err)
     }
 
-    loger.Info("initializing client config")
-    clientMusic, err := client.NewClientWithResponses("http://" + confAPI.Server.Host + ":" + confAPI.Server.Port, client.WithHTTPClient(&http.Client{}))
-    if err != nil {
-        loger.Error("error initializing client", slog.String("error", err.Error()))
-        panic(err)
-    }
-
     loger.Info("initializing server app")  
-    app := app.NewApp(loger, postgres, clientMusic)
-    server := server.NewMysicServer(loger, *app)
+    app := app.NewApp(loger, postgres)
+    server := server.NewSubscrServer(loger, app)
 
     loger.Info("Initializing server endpoints")
-    
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         loger.Info("Received request: " + r.URL.String())
         fmt.Fprint(w, "Server listening on " + r.URL.Host)
     })
-    http.HandleFunc("/search", server.GetData)
-    http.HandleFunc("/text", server.GetText)
-    http.HandleFunc("/delete", server.DeleteSong)
-    http.HandleFunc("/update", server.UpdateSong)
-    http.HandleFunc("/create", server.CreateSong)
-    
+   
+    http.HandleFunc("/create", server.CreateSubscr)
+    http.HandleFunc("/search", server.GetSubscr)
+    http.HandleFunc("/delete", server.DeleteSubscr)
+    http.HandleFunc("/update", server.UpdateSubscr)
+    http.HandleFunc("/summsubscr", server.GetSummSubscr)
+
     loger.Info("Starting server..." + confServer.Host + " " + confServer.Port)
     err = http.ListenAndServe(confServer.Host + ":" + confServer.Port, nil) 
     if err != nil {

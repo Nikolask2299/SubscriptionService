@@ -1,0 +1,3 @@
+
+DROP TABLE IF EXISTS UserSubscr;
+DROP TABLE IF EXISTS Services;

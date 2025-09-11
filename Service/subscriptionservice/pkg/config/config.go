@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
+	
 	"github.com/joho/godotenv"
 )
 
@@ -19,10 +19,6 @@ type ConfigPostgres struct {
 type ServerConfig struct {
 	Host string
 	Port string
-}
-
-type APIConfig struct {
-	Server ServerConfig
 }
 
 type ConfigMigrator struct {
@@ -70,25 +66,18 @@ func InitConfigMigration() (ConfigPostgres, ConfigMigrator, error) {
 	return configPostgres, configMigrator, nil
 }
 
-func RetuneServerConfig() (ServerConfig, APIConfig, error) {
+func RetuneServerConfig() (ServerConfig, error) {
 	err := godotenv.Load(Dir("config.env"))
-    if err!= nil {
-        return ServerConfig{}, APIConfig{}, err
+    if err != nil {
+        return ServerConfig{}, err
     }
     
     serverConfig := ServerConfig{
         Host: getEnv("SERVER_HOST", ""),
         Port: getEnv("SERVER_PORT", ""),
     }
-
-    apiConfig := APIConfig{
-        Server: ServerConfig{
-			Host: getEnv("API_HOST", ""),
-            Port: getEnv("API_PORT", ""),
-        },
-    }
 	
-    return serverConfig, apiConfig, nil
+    return serverConfig, nil
 }
 
 func getEnv(key string, defaultVal string) string {
@@ -98,7 +87,6 @@ func getEnv(key string, defaultVal string) string {
 
     return defaultVal
 }
-
 
 func Dir(envFile string) string {
 	currentDir, err := os.Getwd()

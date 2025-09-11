@@ -1,10 +1,8 @@
-FROM golang:1.22
+FROM golang:1.24
 
 WORKDIR /var/www/go
 
 COPY . /var/www/go
-
-
 
 RUN go install github.com/githubnemo/CompileDaemon@latest
 

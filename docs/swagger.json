@@ -1,0 +1,311 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server celler server.",
+        "title": "Swagger Example API",
+        "contact": {},
+        "version": "2.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/create": {
+            "post": {
+                "description": "create subscription from database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "create"
+                ],
+                "summary": "Create subscription",
+                "parameters": [
+                    {
+                        "description": "subscription struct",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SubscrbUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "success response"
+                    },
+                    "400": {
+                        "description": "Bad request error"
+                    },
+                    "404": {
+                        "description": "Not found error"
+                    },
+                    "405": {
+                        "description": "Method not allowed"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/delete": {
+            "delete": {
+                "description": "delete subscription from database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deleted"
+                ],
+                "summary": "Delete subscription",
+                "parameters": [
+                    {
+                        "description": "delete subscription struct",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SubscrbUserSearch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "success response"
+                    },
+                    "400": {
+                        "description": "Bad request error"
+                    },
+                    "404": {
+                        "description": "Not found error"
+                    },
+                    "405": {
+                        "description": "Method not allowed"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/search": {
+            "post": {
+                "description": "get subscription from database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data"
+                ],
+                "summary": "Get subscription",
+                "parameters": [
+                    {
+                        "description": "filter information",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SubscrbUserSearch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SubscrbUser"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request error"
+                    },
+                    "404": {
+                        "description": "Not found error"
+                    },
+                    "405": {
+                        "description": "Method not allowed"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/summsubscr": {
+            "post": {
+                "description": "Summ subscription from database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data"
+                ],
+                "summary": "Summ subscription",
+                "parameters": [
+                    {
+                        "description": "filter information",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SubscrbUserSearch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SummSubscrb"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request error"
+                    },
+                    "404": {
+                        "description": "Not found error"
+                    },
+                    "405": {
+                        "description": "Method not allowed"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/update": {
+            "post": {
+                "description": "update subscription from database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "update"
+                ],
+                "summary": "Update subscription",
+                "parameters": [
+                    {
+                        "description": "update subscription struct",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SubscrbUserSearch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "success response"
+                    },
+                    "400": {
+                        "description": "Bad request error"
+                    },
+                    "404": {
+                        "description": "Not found error"
+                    },
+                    "405": {
+                        "description": "Method not allowed"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.SubscrbUser": {
+            "description": "Subscriptions information about the account",
+            "type": "object",
+            "required": [
+                "price",
+                "service_name",
+                "start_date",
+                "user_id"
+            ],
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SubscrbUserSearch": {
+            "description": "Subscriptions filter information about the account",
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SummSubscrb": {
+            "description": "Summary price subscriptions",
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "summ_subscriptions": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

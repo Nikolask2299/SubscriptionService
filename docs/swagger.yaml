@@ -1,0 +1,205 @@
+basePath: /
+definitions:
+  models.SubscrbUser:
+    description: Subscriptions information about the account
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    required:
+    - price
+    - service_name
+    - start_date
+    - user_id
+    type: object
+  models.SubscrbUserSearch:
+    description: Subscriptions filter information about the account
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.SummSubscrb:
+    description: Summary price subscriptions
+    properties:
+      end_date:
+        type: string
+      service_name:
+        items:
+          type: string
+        type: array
+      start_date:
+        type: string
+      summ_subscriptions:
+        type: integer
+      user_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server celler server.
+  title: Swagger Example API
+  version: "2.0"
+paths:
+  /create:
+    post:
+      consumes:
+      - application/json
+      description: create subscription from database
+      parameters:
+      - description: subscription struct
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscrbUser'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: success response
+        "400":
+          description: Bad request error
+        "404":
+          description: Not found error
+        "405":
+          description: Method not allowed
+        "500":
+          description: Internal server error
+      summary: Create subscription
+      tags:
+      - create
+  /delete:
+    delete:
+      consumes:
+      - application/json
+      description: delete subscription from database
+      parameters:
+      - description: delete subscription struct
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscrbUserSearch'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: success response
+        "400":
+          description: Bad request error
+        "404":
+          description: Not found error
+        "405":
+          description: Method not allowed
+        "500":
+          description: Internal server error
+      summary: Delete subscription
+      tags:
+      - deleted
+  /search:
+    post:
+      consumes:
+      - application/json
+      description: get subscription from database
+      parameters:
+      - description: filter information
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscrbUserSearch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SubscrbUser'
+            type: array
+        "400":
+          description: Bad request error
+        "404":
+          description: Not found error
+        "405":
+          description: Method not allowed
+        "500":
+          description: Internal server error
+      summary: Get subscription
+      tags:
+      - data
+  /summsubscr:
+    post:
+      consumes:
+      - application/json
+      description: Summ subscription from database
+      parameters:
+      - description: filter information
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscrbUserSearch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SummSubscrb'
+        "400":
+          description: Bad request error
+        "404":
+          description: Not found error
+        "405":
+          description: Method not allowed
+        "500":
+          description: Internal server error
+      summary: Summ subscription
+      tags:
+      - data
+  /update:
+    post:
+      consumes:
+      - application/json
+      description: update subscription from database
+      parameters:
+      - description: update subscription struct
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscrbUserSearch'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: success response
+        "400":
+          description: Bad request error
+        "404":
+          description: Not found error
+        "405":
+          description: Method not allowed
+        "500":
+          description: Internal server error
+      summary: Update subscription
+      tags:
+      - update
+swagger: "2.0"
