@@ -6,4 +6,4 @@ COPY . /var/www/go
 
 RUN go install github.com/githubnemo/CompileDaemon@latest
 
-ENTRYPOINT CompileDaemon --build="go build -o music-server ./Service/musicservice/cmd/main.go" --command=./music-server
+ENTRYPOINT CompileDaemon --build="go build -o subscr-server ./Service/subscriptionservice/cmd/main.go" --command=./subscr-server

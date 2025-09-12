@@ -37,6 +37,9 @@ func (a *SubApp) CreateSubscr(newsubscr models.SubscrbUser) error {
 
 	err := a.base.CreateSubscr(newsubscr) 
 	if err != nil {
+		if err.Error() == `pq: duplicate key value violates unique constraint \user_subscr_pkey\` {
+			return errors.New("error Create Subscription - UUID, NameService, StartDate is not unique")
+		}
 		log.Error("Error Create Subscription", slog.String("Error", err.Error()))
 		return errors.New("error Create Subscription")
 	}
@@ -82,7 +85,9 @@ func (a *SubApp) UpdateSubscr(subscr models.SubscrbUserSearch) error {
 	subscmap["name_service"] = subscr.NameService
 	subscmap["start_date"] = subscr.StartDate
 	subscmap["end_date"] = subscr.EndDate
-	subscmap["price"] = strconv.Itoa(subscr.Price)
+	if subscr.Price != 0 {
+		subscmap["price"] = strconv.Itoa(subscr.Price)
+	}
 	subscmap["user_id"] = subscr.UUID
 
 	if err := a.base.UpdateSubscr(subscmap); err != nil {

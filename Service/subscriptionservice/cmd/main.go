@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"subscriptionservice/cmd/migration"
 	"subscriptionservice/interal/app"
 	"subscriptionservice/interal/server"
 	"subscriptionservice/pkg/config"
@@ -28,11 +29,11 @@ const (
 // @host      localhost:8080
 // @BasePath  /
 func main() {
-  
 	loger := setupLogger("local")
 	loger = loger.With(slog.String("env", "local"))
-
-	loger.Info("initializing server") 
+    migration.Migrations()
+	
+    loger.Info("initializing server") 
     
     confPost, err := config.ReturnedDatabase()
     if err!= nil {

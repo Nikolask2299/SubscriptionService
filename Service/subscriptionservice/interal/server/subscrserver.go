@@ -61,7 +61,11 @@ func (s *SubscrServer) CreateSubscr(w http.ResponseWriter, r *http.Request) {
 	if err := s.app.CreateSubscr(subscr); err != nil {
 		if err.Error() == "error Create Subscription - UUID, NameService, StartDate is empty" {
 			s.loger.Error("Error creating subscrible from server" + err.Error())
-			http.Error(w, "Error creating subscrible from server", http.StatusBadRequest)
+			http.Error(w, "UUID, NameService, StartDate is empty", http.StatusBadRequest)
+			return
+		} else if err.Error() == "error Create Subscription - UUID, NameService, StartDate is not unique" {
+			s.loger.Error("Error creating subscrible from server" + err.Error())
+			http.Error(w, "Error UUID, NameService, StartDate is not unique", http.StatusInternalServerError)
 			return
 		} else {
 			s.loger.Error("Error creating subscrible from server" + err.Error())

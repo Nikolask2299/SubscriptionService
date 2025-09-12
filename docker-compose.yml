@@ -20,7 +20,7 @@ services:
       - interal
 
   postgres-db:
-    image: postgres:16.4
+    image: postgres:17.6-alpine3.22
     restart: unless-stopped
 
     environment:
@@ -36,7 +36,9 @@ services:
 
 
   pg-admin:
+    container_name: pgadmin4
     image: dpage/pgadmin4
+    restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
       PGADMIN_DEFAULT_PASSWORD: q1w2e3r4t5y6u7i8o9p0

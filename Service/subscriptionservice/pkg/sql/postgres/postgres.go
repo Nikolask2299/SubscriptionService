@@ -35,17 +35,25 @@ func (p *Postgres) Close() error {
 }
 
 func (p *Postgres) CreateSubscr(subscr models.SubscrbUser) error {
-    query_service := `INSERT INTO Services (services_name) VALUES ($1)`
-    query_subscr := `INSERT INTO UserSubscr (user_id, start_date, end_date, services_name, price) VALUES ($1, to_date($2, 'MM-YYYY'), to_date($3, 'MM-YYYY'), $4, $5)`
-
+    query_service := `INSERT INTO Services (services_name) VALUES ($1) on conflict do nothing`
     if _, err := p.db.Exec(query_service, subscr.NameService); err != nil {
         return err
     }
 
-    if _, err := p.db.Exec(query_subscr, subscr.UUID, subscr.StartDate, subscr.EndDate, subscr.NameService, subscr.Price); err != nil {
-        return err;
-    }
 
+    query_subscr := `INSERT INTO UserSubscr (user_id, start_date, end_date, services_name, price) VALUES ($1, to_date($2, 'MM-YYYY'),`
+    if subscr.EndDate == "" {
+        query_subscr += ` NULL, $3, $4)`
+        if _, err := p.db.Exec(query_subscr, subscr.UUID, subscr.StartDate, subscr.NameService, subscr.Price); err != nil {
+            return err;
+        }
+    } else {
+        query_subscr += `to_date($3, 'MM-YYYY'), $4, $5)` 
+        if _, err := p.db.Exec(query_subscr, subscr.UUID, subscr.StartDate, subscr.EndDate, subscr.NameService, subscr.Price); err != nil {
+            return err;
+        }
+    }
+       
     return nil
 }
 
@@ -64,71 +72,60 @@ func (p *Postgres) DeleteSubscr(subs models.SubscrbUserSearch) error {
 func (p *Postgres) UpdateSubscr(subscr map[string]string) error {
     query := `UPDATE UserSubscr SET `
     
-     if subscr["user_id"] != "" {
-        query += `, user_id`
-        query += ` = '` + subscr["user_id"]  + `'`
-    }
-    
-    if subscr["services_name"] != "" {
-        query += `, services_name`
-        query += ` = '` + subscr["services_name"] + `'`
-    }
-
-    if  subscr["start_date"] != "" {
-         query += `, start_date`
-        query += ` = to_date('` + subscr["start_date"] + `, 'MM-YYYY')'`
-    }
-
     if  subscr["end_date"] != "" {
         query += `, end_date`
-        query += ` = to_date('` + subscr["end_date"] + `, 'MM-YYYY')'`
+        query += ` = to_date('` + subscr["end_date"] + `', 'MM-YYYY')`
     }
     
     if subscr["price"] != "" {
         query += `, price`
-        query += ` = '` + subscr["price"]  + `'`
+        query += ` = ` + subscr["price"]
     }
+
     query = strings.Replace(query, "SET ,", "SET ", -1)
 
     query += ` WHERE "user_id" = '` + subscr["user_id"] + `'`
-    query += ` AND "services_name" = '` + subscr["services_name"] + `'`
+    query += ` AND "services_name" = '` + subscr["name_service"] + `'`
     query += ` AND "start_date" = to_date('` + subscr["start_date"] + `', 'MM-YYYY');`
 
     _, err := p.db.Exec(query)
+
     return err
 }
 
 func (p *Postgres) ReadSubscr(subscr models.SubscrbUserSearch) ([]models.SubscrbUser, error) {
-    query := `SELECT user_id, start_date, end_date, services_name, price FROM UserSubscr WHERE `
-    
+    query := `SELECT user_id, TO_CHAR(start_date, 'MM-YYYY'), COALESCE(TO_CHAR(end_date, 'MM-YYYY'), ''), services_name, price FROM UserSubscr WHERE `
+   
     if subscr.UUID != "" {
-        query += ` AND user_id`
-        query += ` = '` + subscr.UUID + `'`
+        query += `user_id`
+        query += ` = '` + subscr.UUID + `' `
     }
     
     if subscr.NameService != "" {
-        query += ` AND services_name`
-        query += ` = '` + subscr.NameService + `'`
+        query += `AND services_name`
+        query += ` = '` + subscr.NameService + `' `
     }
 
     if subscr.StartDate != "" {
-         query += ` AND start_date`
-        query += ` = to_date('` + subscr.StartDate + `, 'MM-YYYY')'`
+         query += `AND start_date`
+        query += ` = to_date('` + subscr.StartDate + `', 'MM-YYYY') `
     }
 
     if subscr.EndDate != "" {
-        query += ` AND end_date`
-        query += ` = to_date('` + subscr.EndDate + `, 'MM-YYYY')'`
+        query += `AND end_date`
+        query += ` = to_date('` + subscr.EndDate + `', 'MM-YYYY') `
     }
     
     if subscr.Price != 0 {
-        query += ` AND price`
+        query += `AND price`
         pr := strconv.Itoa(subscr.Price)
-        query += ` = '` + pr + `'`
+        query += ` = ` + pr
     }
-   
+
     query += ";"
-    query = strings.Replace(query, "WHERE AND", "WHERE ", -1)
+    
+    query = strings.Replace(query, "WHERE AND", "WHERE ", 1)
+
 
     rows, err := p.db.Query(query)
     if err != nil {
@@ -150,5 +147,49 @@ func (p *Postgres) ReadSubscr(subscr models.SubscrbUserSearch) ([]models.Subscrb
 
 
 func (p *Postgres) GetSummSubscr(subscr models.SubscrbUserSearch) (models.SummSubscrb, error){
-    return models.SummSubscrb{}, nil
+    res := models.SummSubscrb{
+        UUID: subscr.UUID,
+        StartDate: subscr.StartDate,
+        EndDate: subscr.EndDate,
+        ServiceName: make([]string, 0, 10),
+    }
+
+    query := `SELECT SUM(price * ((DATE_PART('YEAR', to_date($2, 'MM-YYYY') :: DATE) - DATE_PART('YEAR', start_date:: DATE)) * 12 + (DATE_PART('Month', to_date($2, 'MM-YYYY') :: DATE) - DATE_PART('Month', start_date :: DATE)))), ARRAY_AGG(services_name) FROM UserSubscr WHERE start_date BETWEEN to_date($1, 'MM-YYYY') AND to_date($2, 'MM-YYYY')`
+    
+    if subscr.UUID != "" {
+        query += ` AND user_id = `
+        query += subscr.UUID
+    }
+
+    if subscr.NameService != "" {
+        query += ` AND services_name = `
+        query += subscr.NameService
+    }
+
+    query += `;`
+    
+    row, err := p.db.Query(query, subscr.StartDate, subscr.EndDate)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return res, nil
+        } else {
+            return res, err
+        }
+    }
+    defer row.Close()
+
+    row.Next()
+    mass := make([]uint8, 0, 10)
+    if err := row.Scan(&res.Summ, &mass); err != nil {
+        if err == sql.ErrNoRows {
+            return res, nil
+        } else {
+            return res, err
+        }
+    }
+
+    str := strings.Trim(string(mass), "{}")
+    res.ServiceName = strings.Split(str, ",")
+    
+    return res, nil
 }

@@ -1,0 +1,123 @@
+[
+  {
+    "service_name": "Yandex Plus",
+    "user_id": "60601fee-2bf1-4721-ae6f-7636e79a0cba",
+    "start_date": "07-2025",
+    "price": 543
+  },
+  {
+    "service_name": "Spotify Premium",
+    "user_id": "e8f4f5a3-7b2c-4d1e-9a0f-1b2c3d4e5f6a",
+    "start_date": "03-2025",
+    "end_date": "10-2025"
+  },
+  {
+    "service_name": "Netflix Standard",
+    "user_id": "f9a8b7c6-5d4e-3f2g-1h2i-3j4k5l6m7n8o",
+    "start_date": "04-2025",
+    "price": 432,
+    "end_date": "11-2025"
+  },
+  {
+    "service_name": "Apple Music",
+    "user_id": "a1b2c3d4-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+    "start_date": "05-2025"
+  },
+  {
+    "service_name": "Disney Plus",
+    "user_id": "b2c3d4e5-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+    "start_date": "06-2025",
+    "price": 234
+  },
+  {
+    "service_name": "HBO Max",
+    "user_id": "c3d4e5f6-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+    "start_date": "07-2025",
+    "end_date": "01-2026"
+  },
+  {
+    "service_name": "Tidal HiFi",
+    "user_id": "d4e5f6g7-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+    "start_date": "08-2025",
+    "price": 228,
+    "end_date": "03-2026"
+  },
+  {
+    "service_name": "Amazon Prime",
+    "user_id": "e5f6g7h8-9i0j-1k2l-3m4n-5o6p7q8r9s0t",
+    "start_date": "09-2025"
+  },
+  {
+    "service_name": "Google One 200GB",
+    "user_id": "f6g7h8i9-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+    "start_date": "10-2025",
+    "price": 329
+  },
+  {
+    "service_name": "Dropbox Plus",
+    "user_id": "g7h8i9j0-1k2l-3m4n-5o6p-7q8r9s0t1u2v",
+    "start_date": "11-2025",
+    "end_date": "05-2026"
+  },
+  {
+    "service_name": "Adobe Creative Cloud",
+    "user_id": "h8i9j0k1-2l3m-4n5o-6p7q-8r9s0t1u2v3w",
+    "start_date": "12-2025",
+    "price": 1699,
+    "end_date": "07-2026"
+  },
+  {
+    "service_name": "Microsoft 365 Personal",
+    "user_id": "i9j0k1l2-3m4n-5o6p-7q8r-9s0t1u2v3w4x",
+    "start_date": "01-2026"
+  },
+  {
+    "service_name": "ExpressVPN",
+    "user_id": "j0k1l2m3-4n5o-6p7q-8r9s-0t1u2v3w4x5y",
+    "start_date": "02-2026",
+    "price": 1099
+  },
+  {
+    "service_name": "NordVPN",
+    "user_id": "k1l2m3n4-5o6p-7q8r-9s0t-1u2v3w4x5y6z",
+    "start_date": "03-2026",
+    "end_date": "09-2026"
+  },
+  {
+    "service_name": "Malwarebytes Premium",
+    "user_id": "l2m3n4o5-6p7q-8r9s-0t1u-2v3w4x5y6z7a",
+    "start_date": "04-2026",
+    "price": 749
+  },
+  {
+    "service_name": "Bitdefender Total Security",
+    "user_id": "m3n4o5p6-7q8r-9s0t-1u2v-3w4x5y6z7a8b",
+    "start_date": "05-2026",
+    "end_date": "11-2026"
+  },
+  {
+    "service_name": "McAfee Total Protection",
+    "user_id": "n4o5p6q7-8r9s-0t1u-2v3w-4x5y6z7a8b9c",
+    "start_date": "06-2026",
+    "price": 1399
+  },
+  {
+    "service_name": "Canva Pro",
+    "user_id": "o5p6q7r8-9s0t-1u2v-3w4x-5y6z7a8b9c0d",
+    "start_date": "07-2026",
+    "end_date": "02-2027"
+  },
+  {
+    "service_name": "Figma Professional",
+    "user_id": "p6q7r8s9-0t1u-2v3w-4x5y-6z7a8b9c0d1e",
+    "start_date": "08-2026",
+    "price": 1300
+  },
+  {
+    "service_name": "Grammarly Premium",
+    "user_id": "q7r8s9t0-1u2v-3w4x-5y6z-7a8b9c0d1e2f",
+    "start_date": "09-2026",
+    "price": 1299,
+    "end_date": "03-2027"
+  }
+]
