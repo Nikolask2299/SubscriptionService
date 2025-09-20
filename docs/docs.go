@@ -40,8 +40,11 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "success response"
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ID"
+                        }
                     },
                     "400": {
                         "description": "Bad request error"
@@ -72,6 +75,12 @@ const docTemplate = `{
                 ],
                 "summary": "Delete subscription",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "ID",
+                        "in": "query"
+                    },
                     {
                         "description": "delete subscription struct",
                         "name": "input",
@@ -115,6 +124,70 @@ const docTemplate = `{
                 ],
                 "summary": "Get subscription",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "ID",
+                        "in": "query"
+                    },
+                    {
+                        "description": "filter information",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SubscrbUserSearch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SubscrbUser"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request error"
+                    },
+                    "404": {
+                        "description": "Not found error"
+                    },
+                    "405": {
+                        "description": "Method not allowed"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/searchall": {
+            "post": {
+                "description": "All subscription from database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data"
+                ],
+                "summary": "All subscription",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "OFFSET",
+                        "name": "OFFSET",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "LIMIT",
+                        "name": "LIMIT",
+                        "in": "query"
+                    },
                     {
                         "description": "filter information",
                         "name": "input",
@@ -211,6 +284,12 @@ const docTemplate = `{
                 "summary": "Update subscription",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "ID",
+                        "in": "query"
+                    },
+                    {
                         "description": "update subscription struct",
                         "name": "input",
                         "in": "body",
@@ -241,6 +320,15 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.ID": {
+            "description": "Subscriptions ID",
+            "type": "object",
+            "properties": {
+                "id_subscr": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.SubscrbUser": {
             "description": "Subscriptions information about the account",
             "type": "object",
@@ -262,6 +350,9 @@ const docTemplate = `{
                 },
                 "start_date": {
                     "type": "string"
+                },
+                "subscrb_id": {
+                    "type": "integer"
                 },
                 "user_id": {
                     "type": "string"

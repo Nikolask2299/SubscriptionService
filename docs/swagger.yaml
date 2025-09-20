@@ -1,5 +1,11 @@
 basePath: /
 definitions:
+  models.ID:
+    description: Subscriptions ID
+    properties:
+      id_subscr:
+        type: integer
+    type: object
   models.SubscrbUser:
     description: Subscriptions information about the account
     properties:
@@ -11,6 +17,8 @@ definitions:
         type: string
       start_date:
         type: string
+      subscrb_id:
+        type: integer
       user_id:
         type: string
     required:
@@ -71,8 +79,10 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: success response
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ID'
         "400":
           description: Bad request error
         "404":
@@ -90,6 +100,10 @@ paths:
       - application/json
       description: delete subscription from database
       parameters:
+      - description: ID
+        in: query
+        name: ID
+        type: integer
       - description: delete subscription struct
         in: body
         name: input
@@ -118,6 +132,48 @@ paths:
       - application/json
       description: get subscription from database
       parameters:
+      - description: ID
+        in: query
+        name: ID
+        type: integer
+      - description: filter information
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscrbUserSearch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SubscrbUser'
+        "400":
+          description: Bad request error
+        "404":
+          description: Not found error
+        "405":
+          description: Method not allowed
+        "500":
+          description: Internal server error
+      summary: Get subscription
+      tags:
+      - data
+  /searchall:
+    post:
+      consumes:
+      - application/json
+      description: All subscription from database
+      parameters:
+      - description: OFFSET
+        in: query
+        name: OFFSET
+        type: integer
+      - description: LIMIT
+        in: query
+        name: LIMIT
+        type: integer
       - description: filter information
         in: body
         name: input
@@ -141,7 +197,7 @@ paths:
           description: Method not allowed
         "500":
           description: Internal server error
-      summary: Get subscription
+      summary: All subscription
       tags:
       - data
   /summsubscr:
@@ -180,6 +236,10 @@ paths:
       - application/json
       description: update subscription from database
       parameters:
+      - description: ID
+        in: query
+        name: ID
+        type: integer
       - description: update subscription struct
         in: body
         name: input

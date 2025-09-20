@@ -26,6 +26,19 @@ type ConfigMigrator struct {
 	MigrationsTable string
 }
 
+func ReturnLevelLogger() string {
+	err := godotenv.Load(Dir("config.env"))
+	if err != nil {
+		return "DEV"
+	}
+
+	lev := getEnv("LOG_LEVEL", "")
+	if lev == "" {
+		return "DEV"
+	}
+	return lev
+}
+
 
 func ReturnedDatabase() (ConfigPostgres, error) {
 	err := godotenv.Load(Dir("config.env"))
@@ -93,7 +106,7 @@ func Dir(envFile string) string {
 	if err != nil {
 		panic(err)
 	}    
-    currentDir = strings.Replace(currentDir, filepath.Join("Service","musicservice","cmd", "migration"), "", -1)
-	currentDir = strings.Replace(currentDir, filepath.Join("Service","musicservice","cmd"), "", -1)
+    currentDir = strings.Replace(currentDir, filepath.Join("Service","subscriptionservice","cmd", "migration"), "", -1)
+	currentDir = strings.Replace(currentDir, filepath.Join("Service","subscriptionservice","cmd"), "", -1)
     return filepath.Join(currentDir, envFile)
 }

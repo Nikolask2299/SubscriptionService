@@ -2,6 +2,9 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
+	"strconv"
+
 	"log/slog"
 	"net/http"
 	"subscriptionservice/interal/models"
@@ -22,10 +25,11 @@ func NewSubscrServer(loger *slog.Logger, app AppSubscr) *SubscrServer {
 }
 
 type AppSubscr interface {
-	CreateSubscr(newsubscr models.SubscrbUser) error
-	DeleteSubscr(subs models.SubscrbUserSearch) error
-	UpdateSubscr(subscr models.SubscrbUserSearch) error
-	ReadSubscr(subscr models.SubscrbUserSearch) ([]models.SubscrbUser, error)
+	CreateSubscr(newsubscr models.SubscrbUser) (int64, error)
+	DeleteSubscr(id int64, subs models.SubscrbUserSearch) error
+	UpdateSubscr(id int64, subscr models.SubscrbUserSearch) error
+	ReadSubscr(id int64, subscr models.SubscrbUserSearch) (models.SubscrbUser, error)
+	ReadAllSubscr(off, lim int64, subscr models.SubscrbUserSearch) ([]models.SubscrbUser, error)
 	GetSummSubscr(subscr models.SubscrbUserSearch) (models.SummSubscrb, error)
 }
 
@@ -36,7 +40,7 @@ type AppSubscr interface {
 // @Accept       json
 // @Produce      json
 // @Param        input body models.SubscrbUser true "subscription struct"
-// @Success      204 "success response"
+// @Success      200 {object} models.ID
 // @Failure      400  "Bad request error"
 // @Failure      404 "Not found error"
 // @Failure      405 "Method not allowed"
@@ -58,23 +62,34 @@ func (s *SubscrServer) CreateSubscr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.app.CreateSubscr(subscr); err != nil {
-		if err.Error() == "error Create Subscription - UUID, NameService, StartDate is empty" {
-			s.loger.Error("Error creating subscrible from server" + err.Error())
+    id, err := s.app.CreateSubscr(subscr)
+	if err != nil {
+		if errors.Is(err, models.Errisempty) {
+			s.loger.Error("Error Creating subscrible from server" + err.Error())
 			http.Error(w, "UUID, NameService, StartDate is empty", http.StatusBadRequest)
 			return
-		} else if err.Error() == "error Create Subscription - UUID, NameService, StartDate is not unique" {
-			s.loger.Error("Error creating subscrible from server" + err.Error())
-			http.Error(w, "Error UUID, NameService, StartDate is not unique", http.StatusInternalServerError)
+		} else if errors.Is(err, models.Errisuniqu) {
+			s.loger.Error("Error Creating subscrible from server" + err.Error())
+			http.Error(w, "Error UUID, NameService, StartDate is not unique", http.StatusBadRequest)
 			return
-		} else {
-			s.loger.Error("Error creating subscrible from server" + err.Error())
-			http.Error(w, "Error creating subscrible from server", http.StatusInternalServerError)
-			return
+		} else if errors.Is(err, models.ErrIvalidArgs) {
+			s.loger.Error("Error Creating subscrible from server: " + err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return 
 		}
+
+		s.loger.Error("Error creating subscrible from server" + err.Error())
+		http.Error(w, "Error creating subscrible from server", http.StatusInternalServerError)
+		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(models.ID{ID: id}); err != nil {
+		s.loger.Error("Error creating subscrible from server" + err.Error())
+		http.Error(w, "Error creating subscrible from server", http.StatusInternalServerError)
+		return
+	}
+
 	s.loger.Info("Create Subscription Success" + r.URL.String())
 }
 
@@ -84,6 +99,7 @@ func (s *SubscrServer) CreateSubscr(w http.ResponseWriter, r *http.Request) {
 // @Tags         update
 // @Accept       json
 // @Produce      json
+// @Param        ID query int false "ID"
 // @Param        input body models.SubscrbUserSearch true "update subscription struct"
 // @Success      204 "success response"
 // @Failure      400  "Bad request error"
@@ -100,23 +116,37 @@ func (s *SubscrServer) UpdateSubscr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var id int64 = -1
+	qid := r.URL.Query().Get("ID")
+	if qid != "" {
+		id, _ = strconv.ParseInt(qid, 10, 64)
+	}
+
 	var subscr models.SubscrbUserSearch
 	if err := json.NewDecoder(r.Body).Decode(&subscr); err != nil {
-		s.loger.Error("Error update subscrible from server" + err.Error())
-		http.Error(w, "Error update subscrible from server ", http.StatusInternalServerError)
+		s.loger.Error("Error update subscrible from server: " + err.Error())
+		http.Error(w, "Error update subscrible from server", http.StatusInternalServerError)
 		return
 	}
 
-	if err := s.app.UpdateSubscr(subscr); err != nil {
-		if err.Error() == "error Update Subscription - UUID, NameService, StartDate is empty" {
-			s.loger.Error("Error update subscrible from server" + err.Error())
-			http.Error(w, "Error update subscrible from server", http.StatusBadRequest)
+	if err := s.app.UpdateSubscr(id, subscr); err != nil {
+		if errors.Is(err, models.Errisempty) {
+			s.loger.Error("Error update subscrible from server: " + err.Error())
+			http.Error(w, "Error update UUID, NameService, StartDate is empty", http.StatusBadRequest)
 			return
-		} else {
-			s.loger.Error("Error update subscrible from server" + err.Error())
-			http.Error(w, "Error update subscrible from server", http.StatusInternalServerError)
+		} else if errors.Is(err, models.Errisnotex) {
+			s.loger.Error("Error update subscrible from server: " + err.Error())
+			http.Error(w, "Your record does not exist", http.StatusBadRequest)
 			return
+		} else if errors.Is(err, models.ErrIvalidArgs) {
+			s.loger.Error("Error update subscrible from server: " + err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return 
 		}
+
+		s.loger.Error("Error update subscrible from server: " + err.Error())
+		http.Error(w, "Error update subscrible from server", http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
@@ -129,6 +159,7 @@ func (s *SubscrServer) UpdateSubscr(w http.ResponseWriter, r *http.Request) {
 // @Tags         deleted
 // @Accept       json
 // @Produce      json
+// @Param        ID query int false "ID"
 // @Param        input body models.SubscrbUserSearch true "delete subscription struct"
 // @Success      204 "success response"
 // @Failure      400  "Bad request error"
@@ -145,6 +176,12 @@ func (s *SubscrServer) DeleteSubscr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var id int64 = -1
+	qid := r.URL.Query().Get("ID")
+	if qid != "" {
+		id, _ = strconv.ParseInt(qid, 10, 64)
+	}
+
 	var subscr models.SubscrbUserSearch
 	if err := json.NewDecoder(r.Body).Decode(&subscr); err != nil {
 		s.loger.Error("Error delete subscrible from server" + err.Error())
@@ -152,13 +189,17 @@ func (s *SubscrServer) DeleteSubscr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.app.DeleteSubscr(subscr); err != nil {
-		if err.Error() == "error Delete Subscription - UUID, NameService, StartDate is empty" {
+	if err := s.app.DeleteSubscr(id, subscr); err != nil {
+		if errors.Is(err, models.Errisnotex) {
 			s.loger.Error("Error delete subscrible from server" + err.Error())
-			http.Error(w, "Error delete subscrible from server", http.StatusBadRequest)
+			http.Error(w, "Your record does not exist", http.StatusBadRequest)
+			return
+		} else if errors.Is(err, models.Errisempty) {
+			s.loger.Error("Error delete subscrible from server: " + err.Error())
+			http.Error(w, "Error delete: UUID, NameService, StartDate is empty", http.StatusBadRequest)
 			return
 		} else {
-			s.loger.Error("Error delete subscrible from server" + err.Error())
+			s.loger.Error("Error delete subscrible from server: " + err.Error())
 			http.Error(w, "Error delete subscrible from server", http.StatusInternalServerError)
 			return
 		}
@@ -174,8 +215,9 @@ func (s *SubscrServer) DeleteSubscr(w http.ResponseWriter, r *http.Request) {
 // @Tags         data
 // @Accept       json
 // @Produce      json
+// @Param        ID query int false "ID"
 // @Param        input body models.SubscrbUserSearch true "filter information"
-// @Success      200  {array} models.SubscrbUser
+// @Success      200  {object} models.SubscrbUser
 // @Failure      400  "Bad request error"
 // @Failure      404 "Not found error"
 // @Failure      405 "Method not allowed"
@@ -190,6 +232,12 @@ func (s *SubscrServer) GetSubscr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var id int64 = -1
+	qid := r.URL.Query().Get("ID")
+	if qid != "" {
+		id, _ = strconv.ParseInt(qid, 10, 64)
+	}
+
 	var subscr models.SubscrbUserSearch
 	if err := json.NewDecoder(r.Body).Decode(&subscr); err != nil {
 		s.loger.Error("Error get subscrible from server" + err.Error())
@@ -197,8 +245,17 @@ func (s *SubscrServer) GetSubscr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subres, err := s.app.ReadSubscr(subscr)
+	subres, err := s.app.ReadSubscr(id, subscr)
 	if err != nil {
+		if errors.Is(err, models.Errisempty) {
+			s.loger.Error("Error get subscrible from server: " + err.Error())
+			http.Error(w, "Error get: UUID, NameService, StartDate is empty", http.StatusBadRequest)
+			return
+		} else if errors.Is(err, models.ErrIvalidArgs) {
+			s.loger.Error("Error get subscrible from server: " + err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return 
+		}
 		s.loger.Error("Error get subscrible from server" + err.Error())
 		http.Error(w, "Error get subscrible from server ", http.StatusInternalServerError)
 		return
@@ -232,31 +289,97 @@ func (s *SubscrServer) GetSummSubscr(w http.ResponseWriter, r *http.Request) {
 	s.loger.Info("Get Summ Subscription" + r.URL.String())
 
 	if r.Method != "POST" {
-		s.loger.Error("Error get subscrible from server" + " method not allowed")
+		s.loger.Error("Error get summ subscrible from server" + " method not allowed")
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	
 	var subscr models.SubscrbUserSearch
 	if err := json.NewDecoder(r.Body).Decode(&subscr); err != nil {
-		s.loger.Error("Error get subscrible from server" + err.Error())
-		http.Error(w, "Error get subscrible from server ", http.StatusInternalServerError)
+		s.loger.Error("Error get summ subscrible from server" + err.Error())
+		http.Error(w, "Error get summ subscrible from server ", http.StatusInternalServerError)
 		return
 	}
 
 	ressum, err := s.app.GetSummSubscr(subscr)
 	if err != nil {
-		s.loger.Error("Error get subscrible from server" + err.Error())
-		http.Error(w, "Error get subscrible from server ", http.StatusInternalServerError)
+		s.loger.Error("Error get summ subscrible from server" + err.Error())
+		http.Error(w, "Error get summ subscrible from server ", http.StatusInternalServerError)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(ressum); err != nil {
-		s.loger.Error("Error get subscrible from server" + err.Error())
-		http.Error(w, "Error get subscrible from server ", http.StatusInternalServerError)
+		s.loger.Error("Error get summ subscrible from server" + err.Error())
+		http.Error(w, "Error get summ subscrible from server ", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	s.loger.Info("Get Summ Subscription Success" + r.URL.String())
+}
+
+// Get All Subscrible godoc
+// @Summary      All subscription
+// @Description  All subscription from database
+// @Tags         data
+// @Accept       json
+// @Produce      json
+// @Param        OFFSET query int false "OFFSET"
+// @Param        LIMIT query int false "LIMIT"
+// @Param        input body models.SubscrbUserSearch true "filter information"
+// @Success      200  {array} models.SubscrbUser
+// @Failure      400  "Bad request error"
+// @Failure      404 "Not found error"
+// @Failure      405 "Method not allowed"
+// @Failure      500  "Internal server error"
+// @Router       /searchall [post]
+func (s *SubscrServer) GetAllSubscr(w http.ResponseWriter, r *http.Request) {
+	s.loger.Info("Get All Subscription" + r.URL.String())
+	
+	if r.Method != "POST" {
+		s.loger.Error("Error get subscrible from server" + " method not allowed")
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var offset int64 = -1
+	off := r.URL.Query().Get("OFFSET")
+	if off != "" {
+		offset, _ = strconv.ParseInt(off, 10, 64)
+	}
+
+	var limit int64 = -1
+	lim := r.URL.Query().Get("LIMIT")
+	if lim != "" {
+		limit, _ = strconv.ParseInt(lim, 10, 64)
+	}
+
+	var subscr models.SubscrbUserSearch
+	if err := json.NewDecoder(r.Body).Decode(&subscr); err != nil {
+		s.loger.Error("Error get all subscrible from server" + err.Error())
+		http.Error(w, "Error get all subscrible from server ", http.StatusInternalServerError)
+		return
+	}
+
+	subres, err := s.app.ReadAllSubscr(offset, limit, subscr)
+	if err != nil {
+		if errors.Is(err, models.ErrIvalidArgs) {
+			s.loger.Error("Error get all subscrible from server" + err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		s.loger.Error("Error get all subscrible from server" + err.Error())
+		http.Error(w, "Error get all subscrible from server ", http.StatusInternalServerError)
+		return
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	
+	if err := json.NewEncoder(w).Encode(subres); err != nil {
+		s.loger.Error("Error get all subscrible from server" + err.Error())
+		http.Error(w, "Error get all subscrible from server ", http.StatusInternalServerError)
+		return
+	}
+
+	s.loger.Info("Get Subscription Success" + r.URL.String())
 }

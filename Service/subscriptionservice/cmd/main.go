@@ -16,11 +16,25 @@ import (
 )
 
 const (
-    envLocal = "local"
-    envDev   = "dev"
-    envProd  = "prod"
+    envLocal = "LOCAL"
+    envDev   = "DEV"
+    envProd  = "PROD"
 )
 
+//func init() {
+//    confPost, err := config.ReturnedDatabase()
+//    if err!= nil {
+//        panic(err)
+//    }
+
+//   com := fmt.Sprintf("-dsn=postgres://%s:%s@%s:%s/%s?sslmode=disable -schema=public -path=%s", confPost.User, confPost.Password, confPost.Host, confPost.Port, confPost.DBName, config.Dir("gen"))
+
+//    cmd := exec.Command("jet", strings.Split(com, " ")...)
+//    if err := cmd.Run(); err != nil {
+//        fmt.Println(err)
+//        log.Fatal(err)
+//    }
+//}
 
 // @title           Swagger Example API
 // @version         2.0
@@ -29,7 +43,7 @@ const (
 // @host      localhost:8080
 // @BasePath  /
 func main() {
-	loger := setupLogger("local")
+	loger := setupLogger(config.ReturnLevelLogger())
 	loger = loger.With(slog.String("env", "local"))
     migration.Migrations()
 	
@@ -67,6 +81,7 @@ func main() {
    
     http.HandleFunc("/create", server.CreateSubscr)
     http.HandleFunc("/search", server.GetSubscr)
+    http.HandleFunc("/searchall", server.GetAllSubscr)
     http.HandleFunc("/delete", server.DeleteSubscr)
     http.HandleFunc("/update", server.UpdateSubscr)
     http.HandleFunc("/summsubscr", server.GetSummSubscr)
